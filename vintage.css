@@ -1,0 +1,90 @@
+/* ==========================================================================
+   Meal Cards — vintage layer
+   Link this LAST, after base.css and app.css / login.css.
+   Adds back the paper grain, warm lamp glow, and card weight.
+   ========================================================================== */
+
+/* ---- Stronger paper grain ------------------------------------------- */
+
+:root {
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 .38 0 0 0 0 .24 0 0 0 0 .14 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---- A warm lamp glow on the table ---------------------------------- */
+
+body {
+  background:
+    radial-gradient(ellipse at 50% 45%, rgba(90, 50, 18, .6) 0%, transparent 60%),
+    #05081a;
+}
+
+/* ---- App cards: more weight, more lift ------------------------------ */
+
+.phone .card {
+  box-shadow:
+    inset 0 0 0 3px var(--paper),
+    inset 0 0 0 4px rgba(66, 38, 27, .42),
+    inset 0 0 32px rgba(140, 90, 30, .42),
+    0 3px 0 rgba(0, 0, 0, .35),
+    0 8px 22px rgba(0, 0, 0, .4);
+  transition: box-shadow .2s, transform .2s;
+}
+
+.phone .card:hover {
+  box-shadow:
+    inset 0 0 0 3px var(--paper),
+    inset 0 0 0 4px rgba(66, 38, 27, .42),
+    inset 0 0 32px rgba(140, 90, 30, .42),
+    0 3px 0 rgba(0, 0, 0, .35),
+    0 10px 26px rgba(0, 0, 0, .5);
+  transform: translateY(-1px);
+}
+
+/* ---- Flip card faces: thicker paper edge ---------------------------- */
+
+.face {
+  box-shadow:
+    inset 0 0 0 5px var(--paper),
+    inset 0 0 0 6px rgba(66, 38, 27, .45),
+    inset 0 0 36px rgba(140, 90, 30, .4),
+    0 10px 26px rgba(0, 0, 0, .55);
+}
+
+/* ---- Stamps: ink bleeds slightly ------------------------------------ */
+
+.stamp {
+  text-shadow: .4px .4px 0 rgba(247, 235, 203, .7);
+  letter-spacing: .02em;
+  box-shadow: inset 0 0 8px rgba(249, 65, 68, .14);
+}
+
+/* ---- Login card: keep the thick border, add depth ------------------- */
+
+main .card {
+  box-shadow:
+    inset 0 0 0 6px var(--paper),
+    inset 0 0 0 7px rgba(66, 38, 27, .45),
+    inset 0 0 40px rgba(140, 90, 30, .38),
+    0 3px 0 rgba(0, 0, 0, .35),
+    0 20px 44px rgba(0, 0, 0, .55);
+}
+
+/* ---- Headings get a hair of letterpress ----------------------------- */
+
+h1 {
+  text-shadow: 0 1px 0 rgba(0, 0, 0, .35);
+}
+
+/* ---- Slot rows feel stamped into the surface ------------------------ */
+
+.slot {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 230, 167, .05),
+    inset 0 -1px 0 rgba(0, 0, 0, .25);
+}
+
+/* ---- Nav bar gets a top-stitch look -------------------------------- */
+
+.nav {
+  box-shadow: 0 -1px 0 rgba(255, 230, 167, .04);
+}
