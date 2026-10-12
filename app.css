@@ -29,12 +29,12 @@ body {
   position: absolute;
   inset: 0 0 64px 0;
   overflow-y: auto;
-  padding: 22px 20px 24px;
+  padding: 22px 20px 20px;
   display: none;
 }
 .view.on { display: block; }
 
-/* Split layout — fixed header, scrollable body (Deal tab) */
+/* Split layout — fixed header, scrollable body (Deal tab only) */
 .view.split { overflow: hidden; }
 .view.split.on {
   display: flex;
@@ -54,7 +54,7 @@ h2 {
   letter-spacing: .08em;
   text-transform: uppercase;
   color: var(--cream-dim);
-  margin: 18px 0 8px;
+  margin: 16px 0 8px;
   font-weight: 500;
 }
 .sub {
@@ -82,7 +82,7 @@ h2 {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 2px;
   font-family: Georgia, serif;
   font-style: italic;
   font-size: 11px;
@@ -197,7 +197,7 @@ h2 {
   background: var(--esp);
   border: 1px solid var(--chest);
   border-radius: 12px;
-  padding: 12px 14px;
+  padding: 10px 12px;
   margin-bottom: 8px;
 }
 .slot small {
@@ -218,7 +218,7 @@ h2 {
   color: #fff;
   border: 0;
   border-radius: 12px;
-  padding: 13px 14px;
+  padding: 12px;
   width: 100%;
   font-size: 14px;
   font-weight: 600;
@@ -262,7 +262,7 @@ h2 {
 .days div {
   flex: 1;
   text-align: center;
-  padding: 7px 0;
+  padding: 6px 0;
   border: 1px solid var(--chest);
   border-radius: 8px;
   font-size: 11px;
@@ -323,17 +323,13 @@ h2 {
   width: 100%;
   background: var(--esp);
   border: 1px solid var(--chest);
-  border-radius: 14px;
-  padding: 14px 16px;
+  border-radius: 12px;
+  padding: 12px 14px;
   color: var(--cream);
   cursor: pointer;
   text-align: left;
-  margin-top: 14px;
+  margin-top: 12px;
   font-family: inherit;
-}
-.pantry-btn:hover,
-.pantry-btn:focus-visible {
-  border-color: var(--red);
 }
 .pantry-btn:focus-visible {
   outline: 2px solid var(--red);
@@ -386,7 +382,7 @@ h2 {
   background: transparent;
   border: 1px dashed var(--chest);
   border-radius: 12px;
-  padding: 13px;
+  padding: 12px;
   color: var(--cream-dim);
   cursor: pointer;
   font-family: inherit;
@@ -398,10 +394,9 @@ h2 {
   color: var(--red);
   line-height: 1;
 }
-.add-ing-btn:hover,
 .add-ing-btn:focus-visible {
-  border-color: var(--red);
-  color: var(--cream);
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
 }
 
 .add-form {
@@ -470,7 +465,7 @@ h2 {
   background: radial-gradient(circle at 50% 25%, #141A38 0%, #05081a 75%);
   z-index: 5;
   display: none;
-  padding: 22px 20px 28px;
+  padding: 20px 16px;
   overflow-y: auto;
   color: var(--cream);
 }
@@ -585,7 +580,7 @@ h2 {
   justify-content: center;
   color: var(--butter);
   font-size: 12px;
-  margin: 10px 0;
+  margin: 8px 0;
 }
 
 input {
@@ -593,7 +588,7 @@ input {
   background: var(--esp);
   border: 1px solid var(--chest);
   border-radius: 8px;
-  padding: 11px 12px;
+  padding: 10px;
   color: var(--cream);
   font-size: 14px;
   margin-top: 8px;
