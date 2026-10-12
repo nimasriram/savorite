@@ -6,8 +6,8 @@
 html, body { min-height: 100%; }
 
 body {
-  background: var(--navy);
-  color: var(--butter);
+  background: radial-gradient(circle at 50% 40%, #1B2145 0%, #0A0E22 70%);
+  color: var(--cream-soft);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -24,7 +24,7 @@ main {
   font-style: italic;
   font-size: 16px;
   letter-spacing: .08em;
-  opacity: .75;
+  color: var(--cream-dim);
   margin-bottom: 16px;
   text-align: center;
 }
@@ -206,7 +206,7 @@ a, .lnk {
 
 .note {
   font-size: 12px;
-  opacity: .55;
+  color: var(--cream-faint);
   text-align: center;
   margin-top: 16px;
 }
