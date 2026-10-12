@@ -1,7 +1,7 @@
 /* ==========================================================================
-   Meal Cards — prototype app
+   index.html
    Renders the Today, Deal, Create, and Deck views.
-   Depends on: css/base.css, css/app.css
+   Depends on: base.css, app.css
    ========================================================================== */
 
 /* ---- Goals and starting data ---------------------------------------- */
@@ -234,8 +234,8 @@ function open_(id) {
 /* ---- Create --------------------------------------------------------- */
 
 function rCreate() {
-  const ntEl = $('nt');          const savedTitle = ntEl ? ntEl.value : '';
-  const iiEl = $('ingInput');    const savedIng   = iiEl ? iiEl.value : '';
+  const ntEl = $('nt');       const savedTitle = ntEl ? ntEl.value : '';
+  const iiEl = $('ingInput'); const savedIng   = iiEl ? iiEl.value : '';
 
   const s = draft.reduce(
     (a, i) => [a[0] + IG[i][0], a[1] + IG[i][1], a[2] + IG[i][2]],
