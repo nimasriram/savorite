@@ -1,0 +1,212 @@
+/* ==========================================================================
+   Meal Cards — login / sign up
+   Depends on: base.css
+   ========================================================================== */
+
+html, body { min-height: 100%; }
+
+body {
+  background: var(--navy);
+  color: var(--butter);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+main {
+  width: 100%;
+  max-width: 380px;
+}
+
+.brand {
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: 16px;
+  letter-spacing: .08em;
+  opacity: .75;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+/* ---- Card ----------------------------------------------------------- */
+
+.card {
+  background: var(--paper) var(--grain);
+  color: var(--ink);
+  border-top: 6px solid var(--red);
+  border-radius: 3px;
+  padding: 30px 28px 24px;
+  box-shadow:
+    inset 0 0 0 6px var(--paper),
+    inset 0 0 0 7px rgba(66, 38, 27, .45),
+    inset 0 0 36px rgba(140, 90, 30, .3),
+    0 18px 40px rgba(0, 0, 0, .45);
+}
+
+h1 {
+  font-family: Georgia, serif;
+  font-size: 28px;
+  line-height: 1.15;
+  margin-bottom: 4px;
+}
+.lead {
+  font-size: 14px;
+  margin-bottom: 18px;
+  opacity: .8;
+}
+
+/* ---- Form ----------------------------------------------------------- */
+
+label {
+  display: block;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  margin: 12px 0 2px;
+}
+
+.field { position: relative; }
+
+input[type=email],
+input[type=password],
+input[type=text] {
+  width: 100%;
+  padding: 9px 4px;
+  border: 0;
+  border-bottom: 1.5px solid var(--chest);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 16px;
+}
+.field input { padding-right: 58px; }
+
+input:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--red);
+  outline-offset: 2px;
+}
+input[aria-invalid=true] { border-color: var(--red); }
+
+.eye {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: 0;
+  color: var(--chest);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+
+.err {
+  color: #b3191c;
+  font-size: 12px;
+  min-height: 16px;
+  margin-top: 3px;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  font-size: 13px;
+}
+.row label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 0;
+  font-weight: 500;
+}
+
+a, .lnk {
+  color: #b3191c;
+  cursor: pointer;
+  text-decoration: underline;
+  background: none;
+  border: 0;
+  font-size: 13px;
+}
+
+.btn {
+  width: 100%;
+  margin-top: 16px;
+  padding: 13px;
+  border: 0;
+  border-radius: 3px;
+  background: var(--red);
+  color: #fff;
+  font-family: Georgia, serif;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  cursor: pointer;
+  box-shadow: 0 3px 0 #a52a2c;
+}
+.btn:disabled { opacity: .6; cursor: wait; }
+.btn.o {
+  background: transparent;
+  border: 1px solid var(--chest);
+  color: var(--butter);
+  box-shadow: none;
+  margin-top: 8px;
+  display: block;
+  text-align: center;
+  text-decoration: none;
+}
+
+.swap {
+  text-align: center;
+  margin-top: 14px;
+  font-size: 13px;
+}
+
+.meter {
+  height: 5px;
+  background: rgba(66, 38, 27, .2);
+  border-radius: 3px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+.meter i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--red);
+  transition: width .25s;
+}
+.hint {
+  font-size: 11px;
+  opacity: .75;
+  margin-top: 3px;
+}
+
+#form-err {
+  color: #b3191c;
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 10px;
+  min-height: 18px;
+}
+
+/* ---- States --------------------------------------------------------- */
+
+.hidden { display: none; }
+
+.welcome { text-align: center; }
+.welcome .big { font-size: 48px; margin: 6px 0; }
+
+.note {
+  font-size: 12px;
+  opacity: .55;
+  text-align: center;
+  margin-top: 16px;
+}
