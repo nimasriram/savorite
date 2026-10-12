@@ -12,14 +12,15 @@
   --cream-dim:   #B9A87E;  /* labels, secondary */
   --cream-faint: #8A7B5E;  /* hints, inactive nav */
 
-  /* --navy:    #090E24;
+  /* Core palette */
+  --navy:    #090E24;
   --esp:     #281109;
   --chest:   #42261B;
   --butter:  #FFE6A7;
   --red:     #F94144;
   --paper:   #F0DFB0;
-  --ink:     #3a2418; */
-  
+  --ink:     #3a2418;
+
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .18 0 0 0 0 .08 0 0 0 .12 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 
   box-sizing: border-box;
