@@ -172,24 +172,29 @@ function score(c) {
 }
 
 function rDeal() {
-  const h = [...cards].sort((a, b) => score(b) - score(a)).slice(0, 4);
+  const h = [...cards].sort((a, b) => score(b) - score(a));
   $('deal').innerHTML = `
-    <div class="deal-head">
-      <h1>Deal a hand</h1>
-      <div class="sub">Cards ranked by what's in your pantry.</div>
-      <button class="pantry-btn" onclick="openPantry()">
-        <span class="pb-icon">🥕</span>
-        <span class="pb-label">
-          <small>YOUR PANTRY</small>
-          <b>${pantry.length} of ${pantryAll.length} ingredients</b>
-        </span>
-        <span class="pb-arrow">→</span>
-      </button>
-      <h2>Your hand</h2>
-    </div>
-    <div class="deal-hand">
+    <h1>Deal a hand</h1>
+    <div class="sub">Match cards to what's already in your kitchen.</div>
+    <button class="btn o pantry-btn" onclick="openPantry()">
+      <span>Your pantry</span>
+      <span class="pantry-count">${pantry.length} ${pantry.length === 1 ? 'item' : 'items'}</span>
+    </button>
+    <h2>Your hand</h2>
+    <div class="hand scrollable">
       ${h.map(c => mini(c, `<span class="match">${score(c)}% match</span>`)).join('')}
     </div>`;
+}
+
+function openPantry() {
+  $('modal').innerHTML = `
+    <button class="x inset" onclick="closeM()" aria-label="Close">✕</button>
+    <h1>Your pantry</h1>
+    <div class="sub">Tap what you have. Cards re-rank as you go.</div>
+    <h2>In your kitchen</h2>
+    ${pantryAll.map(p => `<span class="chip ${pantry.includes(p) ? 'on' : ''}" onclick="tp('${p}')">${p}</span>`).join('')}
+    <button class="btn" onclick="closeM()">Done</button>`;
+  $('modal').classList.add('on');
 }
 
 function openPantry() {
@@ -212,9 +217,9 @@ function openPantry() {
   $('modal').classList.add('on');
 }
 
-function tp(p, el) {
+function tp(p) {
   pantry = pantry.includes(p) ? pantry.filter(x => x != p) : [...pantry, p];
-  if (el) el.classList.toggle('on', pantry.includes(p));
+  openPantry();
   rDeal();
 }
 
@@ -261,61 +266,47 @@ function open_(id) {
 }
 
 /* ---- Create --------------------------------------------------------- */
+let draftSteps = [''];
+
+const escAttr = s => String(s)
+  .replace(/&/g, '&amp;')
+  .replace(/"/g, '&quot;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;');
 
 function rCreate() {
+  const ntEl = $('nt'); const savedTitle = ntEl ? ntEl.value : '';
+  const iiEl = $('ingInput'); const savedIng = iiEl ? iiEl.value : '';
+
   const s = draft.reduce(
-    (a, i) => [a[0] + (IG[i]?.[0] || 0), a[1] + (IG[i]?.[1] || 0), a[2] + (IG[i]?.[2] || 0)],
+    (a, i) => [a[0] + IG[i][0], a[1] + IG[i][1], a[2] + IG[i][2]],
     [0, 0, 0]
   );
-  const titleVal = $('nt') ? $('nt').value : '';
 
   $('create').innerHTML = `
     <h1>Write a card</h1>
-    <div class="sub">Tap ingredients and nutrition adds up automatically.</div>
-    <input id="nt" placeholder="Card title (e.g. Sunday Egg Fried Rice)" value="${attr(titleVal)}">
+    <div class="sub">Name it, add what goes in, add the steps. Nutrition adds up automatically.</div>
+
+    <input id="nt" placeholder="Card title (e.g. Sunday Egg Fried Rice)">
 
     <h2>Ingredients</h2>
-    <div class="chip-row">
-      ${Object.keys(IG).map(i => `
-        <button class="chip ${draft.includes(i) ? 'on' : ''}"
-                data-ing="${attr(i)}"
-                onclick="td(this.dataset.ing)">${escapeHtml(i)}</button>`).join('')}
+    ${Object.keys(IG).map(i => `<span class="chip ${draft.includes(i) ? 'on' : ''}" onclick="td('${i}')">${i}</span>`).join('')}
+    <div class="ing-add">
+      <input id="ingInput" placeholder="Add your own" onkeydown="if(event.key==='Enter'){event.preventDefault();addIngredient()}">
+      <button onclick="addIngredient()" aria-label="Add ingredient">＋</button>
     </div>
 
-    ${showAddIng ? `
-      <div class="add-form">
-        <input id="ii-name" placeholder="Ingredient name">
-        <div class="macro-row">
-          <input id="ii-cal" type="number" placeholder="Cal" min="0">
-          <input id="ii-pro" type="number" placeholder="Protein g" min="0">
-          <input id="ii-fib" type="number" placeholder="Fiber g" min="0">
-        </div>
-        <div class="add-form-actions">
-          <button class="btn o" onclick="showAddIng=false;rCreate()">Cancel</button>
-          <button class="btn" onclick="addCustomIngredient()">Add</button>
-        </div>
-      </div>
-    ` : `
-      <button class="add-ing-btn" onclick="showAddIng=true;rCreate()">
-        <span>+</span> Add an ingredient
-      </button>
-    `}
-
     <h2>Steps</h2>
-    <div class="steps-list">
-      ${draftSteps.map((step, i) => `
+    <div class="steps">
+      ${draftSteps.map((st, i) => `
         <div class="step-row">
           <span class="step-num">${i + 1}</span>
-          <input class="step-input"
-                 value="${attr(step)}"
-                 placeholder="What happens here?"
-                 oninput="draftSteps[${i}]=this.value">
+          <input value="${escAttr(st)}" oninput="draftSteps[${i}]=this.value" placeholder="What happens next?">
+          ${draftSteps.length > 1 ? `<button class="step-x" onclick="removeStep(${i})" aria-label="Remove step">✕</button>` : ''}
         </div>
       `).join('')}
     </div>
-    <button class="add-ing-btn" onclick="addStep()">
-      <span>+</span> Add a step
-    </button>
+    <button class="btn o" onclick="addStep()">+ Add step</button>
 
     <h2>Nutrition stamp</h2>
     <div class="card card-static">
@@ -325,8 +316,31 @@ function rCreate() {
 
     <div class="clip">＋ Attach optional 20-sec clip</div>
     <button class="btn" onclick="saveCard()">Save to my deck</button>`;
+
+  if ($('nt')) $('nt').value = savedTitle;
+  if ($('ingInput')) $('ingInput').value = savedIng;
 }
 
+function addIngredient() {
+  const el = $('ingInput');
+  const name = el.value.trim().toLowerCase();
+  if (!name) return;
+  if (!IG[name]) IG[name] = [0, 0, 0];
+  if (!draft.includes(name)) draft.push(name);
+  el.value = '';
+  rCreate();
+}
+
+function addStep() {
+  draftSteps.push('');
+  rCreate();
+}
+
+function removeStep(i) {
+  draftSteps.splice(i, 1);
+  if (!draftSteps.length) draftSteps = [''];
+  rCreate();
+}
 function td(i) {
   draft = draft.includes(i) ? draft.filter(x => x != i) : [...draft, i];
   rCreate();
@@ -352,30 +366,26 @@ function addCustomIngredient() {
 }
 
 function saveCard() {
-  const t = ($('nt').value || '').trim() || 'Untitled card';
-  if (!draft.length) { toast('Add an ingredient first'); return; }
-
+  const t = $('nt').value.trim() || 'Untitled card';
+  if (!draft.length) return toast('Add an ingredient first');
   const s = draft.reduce(
-    (a, i) => [a[0] + (IG[i]?.[0] || 0), a[1] + (IG[i]?.[1] || 0), a[2] + (IG[i]?.[2] || 0)],
+    (a, i) => [a[0] + IG[i][0], a[1] + IG[i][1], a[2] + IG[i][2]],
     [0, 0, 0]
   );
   const steps = draftSteps.map(x => x.trim()).filter(Boolean);
-
   cards.push({
     id: Date.now(),
-    t,
-    e: '🍽️',
+    t, e: '🍽️',
     cal: s[0], pro: s[1], fib: s[2],
     min: 15,
     ing: [...draft],
     steps: steps.length ? steps : ['Add your steps…'],
     by: 'You'
   });
-
   draft = [];
   draftSteps = [''];
-  showAddIng = false;
   toast('Card saved');
+  rCreate();
   tab('deck');
 }
 
