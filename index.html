@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Savorite</title>
-<link rel="stylesheet" href="base.css">
-<link rel="stylesheet" href="app.css">
+<title>Meal Cards – prototype</title>
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/app.css">
 </head>
 <body>
 
 <div class="phone">
   <div class="view on" id="today"></div>
-  <div class="view" id="deal"></div>
+  <div class="view split" id="deal"></div>
   <div class="view" id="create"></div>
   <div class="view" id="deck"></div>
   <div class="modal" id="modal"></div>
@@ -58,22 +58,22 @@ const pantryAll = ['egg', 'bread', 'avocado', 'rice', 'spinach', 'chicken',
 let pantry = ['egg', 'bread', 'avocado', 'rice', 'spinach', 'onion', 'lemon'];
 
 const IG = {
-  egg: [70, 6, 0],
-  bread: [80, 3, 2],
-  avocado: [160, 2, 7],
-  rice: [200, 4, 1],
-  spinach: [10, 1, 1],
-  chicken: [250, 38, 0],
-  lentils: [230, 18, 16],
-  onion: [40, 1, 2],
-  'olive oil': [120, 0, 0],
-  tomato: [20, 1, 1]
+  egg: [70, 6, 0], bread: [80, 3, 2], avocado: [160, 2, 7], rice: [200, 4, 1],
+  spinach: [10, 1, 1], chicken: [250, 38, 0], lentils: [230, 18, 16],
+  onion: [40, 1, 2], 'olive oil': [120, 0, 0], tomato: [20, 1, 1]
 };
 
 let draft = [];
+let draftSteps = [''];
+let showAddIng = false;
 
 const $ = id => document.getElementById(id);
 const byId = i => cards.find(c => c.id == i);
+
+const escapeHtml = s => String(s)
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const attr = s => String(s)
+  .replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
 
 function toast(m) {
   const t = $('toast');
@@ -95,8 +95,8 @@ function mini(c, extra = '') {
       <div class="card-row">
         <span class="em">${c.e}</span>
         <div>
-          <div class="ttl">${c.t}</div>
-          <div class="meta">${c.min} min · by ${c.by}</div>
+          <div class="ttl">${escapeHtml(c.t)}</div>
+          <div class="meta">${c.min} min · by ${escapeHtml(c.by)}</div>
         </div>
       </div>
       ${stamps(c)}
@@ -117,13 +117,13 @@ function tot() {
   plan[day].forEach(i => {
     if (i) {
       const c = byId(i);
-      s.cal += c.cal;
-      s.pro += c.pro;
-      s.fib += c.fib;
+      s.cal += c.cal; s.pro += c.pro; s.fib += c.fib;
     }
   });
   return s;
 }
+
+/* ---- Today ---------------------------------------------------------- */
 
 function rToday() {
   const s = tot();
@@ -141,7 +141,7 @@ function rToday() {
       <div class="slot">
         <div>
           <small>${slots[i]}</small>
-          <div>${id ? byId(id).e + ' ' + byId(id).t : 'Empty slot'}</div>
+          <div>${id ? byId(id).e + ' ' + escapeHtml(byId(id).t) : 'Empty slot'}</div>
         </div>
         <button class="chip on tight" onclick="pick(${i})">${id ? 'Swap' : '+ Add'}</button>
       </div>`).join('')}
@@ -164,6 +164,8 @@ function pick(i) {
 
 function closeM() { $('modal').classList.remove('on'); }
 
+/* ---- Deal ----------------------------------------------------------- */
+
 function score(c) {
   const h = c.ing.filter(x => pantry.some(p => x.includes(p) || p.includes(x))).length;
   return Math.round(h / c.ing.length * 100);
@@ -172,20 +174,61 @@ function score(c) {
 function rDeal() {
   const h = [...cards].sort((a, b) => score(b) - score(a)).slice(0, 4);
   $('deal').innerHTML = `
-    <h1>Deal a hand</h1>
-    <div class="sub">Tap what's in your kitchen. Cards match your pantry and past likes.</div>
-    <h2>Pantry</h2>
-    ${pantryAll.map(p => `<span class="chip ${pantry.includes(p) ? 'on' : ''}" onclick="tp('${p}')">${p}</span>`).join('')}
-    <h2>Your hand</h2>
-    <div class="hand">
+    <div class="deal-head">
+      <h1>Deal a hand</h1>
+      <div class="sub">Cards ranked by what's in your pantry.</div>
+      <button class="pantry-btn" onclick="openPantry()">
+        <span class="pb-icon">🥕</span>
+        <span class="pb-label">
+          <small>YOUR PANTRY</small>
+          <b>${pantry.length} of ${pantryAll.length} ingredients</b>
+        </span>
+        <span class="pb-arrow">→</span>
+      </button>
+      <h2>Your hand</h2>
+    </div>
+    <div class="deal-hand">
       ${h.map(c => mini(c, `<span class="match">${score(c)}% match</span>`)).join('')}
     </div>`;
 }
 
-function tp(p) {
+function openPantry() {
+  $('modal').innerHTML = `
+    <button class="x inset" onclick="closeM()" aria-label="Close">✕</button>
+    <h1>Your pantry</h1>
+    <div class="sub">Tap what you have. Cards will rank by what you can actually cook.</div>
+    <h2>Ingredients</h2>
+    <div class="pantry-grid">
+      ${pantryAll.map(p => `
+        <button class="chip ${pantry.includes(p) ? 'on' : ''}"
+                data-ing="${attr(p)}"
+                onclick="tp(this.dataset.ing, this)">${escapeHtml(p)}</button>`).join('')}
+    </div>
+    <h2>Add your own</h2>
+    <input id="pi" placeholder="e.g. sesame oil"
+           onkeydown="if(event.key==='Enter'){event.preventDefault();addPantryItem()}">
+    <button class="btn" onclick="addPantryItem()">Add to pantry</button>
+    <button class="btn o" onclick="closeM()">Done</button>`;
+  $('modal').classList.add('on');
+}
+
+function tp(p, el) {
   pantry = pantry.includes(p) ? pantry.filter(x => x != p) : [...pantry, p];
+  if (el) el.classList.toggle('on', pantry.includes(p));
   rDeal();
 }
+
+function addPantryItem() {
+  const el = $('pi');
+  const v = el.value.trim().toLowerCase();
+  if (!v) return;
+  if (!pantryAll.includes(v)) pantryAll.push(v);
+  if (!pantry.includes(v)) pantry.push(v);
+  openPantry();
+  rDeal();
+}
+
+/* ---- Card view ------------------------------------------------------ */
 
 function open_(id) {
   const c = byId(id);
@@ -196,17 +239,17 @@ function open_(id) {
         <div class="in">
           <div class="face">
             <div class="em">${c.e}</div>
-            <h3>${c.t}</h3>
-            <div class="meta">${c.min} min · by ${c.by}</div>
+            <h3>${escapeHtml(c.t)}</h3>
+            <div class="meta">${c.min} min · by ${escapeHtml(c.by)}</div>
             <div class="mt-8">${stamps(c)}</div>
             <div class="clip">▶ 20-sec how-to clip</div>
             <div class="flip-hint">Tap card to flip</div>
           </div>
           <div class="face back">
             <h3>Ingredients</h3>
-            <ul>${c.ing.map(i => `<li>${i}</li>`).join('')}</ul>
+            <ul>${c.ing.map(i => `<li>${escapeHtml(i)}</li>`).join('')}</ul>
             <h3 class="small mt-8">Steps</h3>
-            <ol>${c.steps.map(i => `<li>${i}</li>`).join('')}</ol>
+            <ol>${c.steps.map(i => `<li>${escapeHtml(i)}</li>`).join('')}</ol>
           </div>
         </div>
       </div>
@@ -217,40 +260,107 @@ function open_(id) {
   $('modal').classList.add('on');
 }
 
+/* ---- Create --------------------------------------------------------- */
+
 function rCreate() {
   const s = draft.reduce(
-    (a, i) => [a[0] + IG[i][0], a[1] + IG[i][1], a[2] + IG[i][2]],
+    (a, i) => [a[0] + (IG[i]?.[0] || 0), a[1] + (IG[i]?.[1] || 0), a[2] + (IG[i]?.[2] || 0)],
     [0, 0, 0]
   );
+  const titleVal = $('nt') ? $('nt').value : '';
+
   $('create').innerHTML = `
     <h1>Write a card</h1>
     <div class="sub">Tap ingredients and nutrition adds up automatically.</div>
-    <input id="nt" placeholder="Card title (e.g. Sunday Egg Fried Rice)">
+    <input id="nt" placeholder="Card title (e.g. Sunday Egg Fried Rice)" value="${attr(titleVal)}">
+
     <h2>Ingredients</h2>
-    ${Object.keys(IG).map(i => `<span class="chip ${draft.includes(i) ? 'on' : ''}" onclick="td('${i}')">${i}</span>`).join('')}
+    <div class="chip-row">
+      ${Object.keys(IG).map(i => `
+        <button class="chip ${draft.includes(i) ? 'on' : ''}"
+                data-ing="${attr(i)}"
+                onclick="td(this.dataset.ing)">${escapeHtml(i)}</button>`).join('')}
+    </div>
+
+    ${showAddIng ? `
+      <div class="add-form">
+        <input id="ii-name" placeholder="Ingredient name">
+        <div class="macro-row">
+          <input id="ii-cal" type="number" placeholder="Cal" min="0">
+          <input id="ii-pro" type="number" placeholder="Protein g" min="0">
+          <input id="ii-fib" type="number" placeholder="Fiber g" min="0">
+        </div>
+        <div class="add-form-actions">
+          <button class="btn o" onclick="showAddIng=false;rCreate()">Cancel</button>
+          <button class="btn" onclick="addCustomIngredient()">Add</button>
+        </div>
+      </div>
+    ` : `
+      <button class="add-ing-btn" onclick="showAddIng=true;rCreate()">
+        <span>+</span> Add an ingredient
+      </button>
+    `}
+
+    <h2>Steps</h2>
+    <div class="steps-list">
+      ${draftSteps.map((step, i) => `
+        <div class="step-row">
+          <span class="step-num">${i + 1}</span>
+          <input class="step-input"
+                 value="${attr(step)}"
+                 placeholder="What happens here?"
+                 oninput="draftSteps[${i}]=this.value">
+        </div>
+      `).join('')}
+    </div>
+    <button class="add-ing-btn" onclick="addStep()">
+      <span>+</span> Add a step
+    </button>
+
     <h2>Nutrition stamp</h2>
     <div class="card card-static">
       <div class="ttl">Per serving</div>
       ${stamps({ cal: s[0], pro: s[1], fib: s[2] })}
     </div>
+
     <div class="clip">＋ Attach optional 20-sec clip</div>
     <button class="btn" onclick="saveCard()">Save to my deck</button>`;
 }
 
 function td(i) {
-  const v = $('nt') ? $('nt').value : '';
   draft = draft.includes(i) ? draft.filter(x => x != i) : [...draft, i];
   rCreate();
-  $('nt').value = v;
+}
+
+function addStep() {
+  draftSteps.push('');
+  rCreate();
+  const inputs = document.querySelectorAll('.step-input');
+  if (inputs.length) inputs[inputs.length - 1].focus();
+}
+
+function addCustomIngredient() {
+  const name = $('ii-name').value.trim().toLowerCase();
+  const cal = parseInt($('ii-cal').value, 10) || 0;
+  const pro = parseInt($('ii-pro').value, 10) || 0;
+  const fib = parseInt($('ii-fib').value, 10) || 0;
+  if (!name) { toast('Name your ingredient'); return; }
+  if (!IG[name]) IG[name] = [cal, pro, fib];
+  if (!draft.includes(name)) draft.push(name);
+  showAddIng = false;
+  rCreate();
 }
 
 function saveCard() {
-  const t = $('nt').value.trim() || 'Untitled card';
-  if (!draft.length) return toast('Add an ingredient first');
+  const t = ($('nt').value || '').trim() || 'Untitled card';
+  if (!draft.length) { toast('Add an ingredient first'); return; }
+
   const s = draft.reduce(
-    (a, i) => [a[0] + IG[i][0], a[1] + IG[i][1], a[2] + IG[i][2]],
+    (a, i) => [a[0] + (IG[i]?.[0] || 0), a[1] + (IG[i]?.[1] || 0), a[2] + (IG[i]?.[2] || 0)],
     [0, 0, 0]
   );
+  const steps = draftSteps.map(x => x.trim()).filter(Boolean);
+
   cards.push({
     id: Date.now(),
     t,
@@ -258,14 +368,18 @@ function saveCard() {
     cal: s[0], pro: s[1], fib: s[2],
     min: 15,
     ing: [...draft],
-    steps: ['Add your steps…'],
+    steps: steps.length ? steps : ['Add your steps…'],
     by: 'You'
   });
+
   draft = [];
+  draftSteps = [''];
+  showAddIng = false;
   toast('Card saved');
-  rCreate();
   tab('deck');
 }
+
+/* ---- Deck ----------------------------------------------------------- */
 
 function rDeck() {
   $('deck').innerHTML = `
@@ -277,6 +391,8 @@ function rDeck() {
     <h2>All cards</h2>
     <div class="hand">${cards.map(c => mini(c)).join('')}</div>`;
 }
+
+/* ---- Tabs ----------------------------------------------------------- */
 
 const tabs = [
   ['today',  '❧', 'Today'],
