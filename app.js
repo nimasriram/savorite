@@ -12,23 +12,23 @@ let cards = [
   { id: 1, t: 'Spicy Ramen Bowl', e: '🍜', cal: 480, pro: 24, fib: 6, min: 20,
     ing: ['ramen noodles', 'soft egg', 'bok choy', 'chili oil', 'broth'],
     steps: ['Simmer broth with chili oil.', 'Cook noodles 3 min.', 'Top with egg and bok choy.'],
-    by: 'You' },
+    cat: 'dinner' },
   { id: 2, t: 'Avocado Toast', e: '🥑', cal: 320, pro: 11, fib: 9, min: 5,
     ing: ['bread', 'avocado', 'egg', 'lemon'],
     steps: ['Toast bread.', 'Mash avocado with lemon.', 'Top with egg.'],
-    by: 'You' },
+    cat: 'breakfast' },
   { id: 3, t: 'Greek Salad Wrap', e: '🌯', cal: 410, pro: 18, fib: 8, min: 10,
     ing: ['tortilla', 'feta', 'cucumber', 'tomato', 'chickpeas'],
     steps: ['Chop veg.', 'Toss with feta and chickpeas.', 'Wrap tightly.'],
-    by: 'Maya' },
+    cat: 'lunch' },
   { id: 4, t: 'Lentil Curry', e: '🍛', cal: 520, pro: 26, fib: 15, min: 30,
     ing: ['lentils', 'spinach', 'coconut milk', 'rice', 'onion'],
     steps: ['Sauté onion.', 'Simmer lentils 20 min.', 'Stir in spinach.'],
-    by: 'Chef Rosa' },
+    cat: 'dinner' },
   { id: 5, t: 'Chicken Rice Bowl', e: '🍗', cal: 560, pro: 42, fib: 5, min: 25,
     ing: ['chicken', 'rice', 'spinach', 'onion', 'lemon'],
     steps: ['Sear chicken.', 'Cook rice.', 'Assemble with greens.'],
-    by: 'Chef Rosa' }
+    cat: 'dinner' }
 ];
 
 const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
@@ -58,6 +58,13 @@ const IG = {
 
 let draft = [];
 let draftSteps = [''];
+let draftCat = 'dinner';
+
+const CATS = [['breakfast', 'Breakfast'], ['lunch', 'Lunch'], ['dinner', 'Dinner'], ['snack', 'Snacks']];
+let addingPantry = false;   // pantry "add an ingredient" form open?
+let addingIng = false;      // create "add an ingredient" form open?
+let deckCat = 'all';        // active divider tab in the recipe box
+let deckQ = '';             // recipe box search text
 
 /* ---- Helpers -------------------------------------------------------- */
 
@@ -68,6 +75,8 @@ const escAttr = s => String(s)
   .replace(/"/g, '&quot;')
   .replace(/</g, '&lt;')
   .replace(/>/g, '&gt;');
+
+const cleanName = s => String(s).trim().toLowerCase().replace(/\s+/g, ' ').slice(0, 30);
 
 function toast(m) {
   const t = $('toast');
@@ -89,8 +98,8 @@ function mini(c, extra = '') {
       <div class="card-row">
         <span class="em">${c.e}</span>
         <div>
-          <div class="ttl">${c.t}</div>
-          <div class="meta">${c.min} min · by ${c.by}</div>
+          <div class="ttl">${escAttr(c.t)}</div>
+          <div class="meta">${c.min} min</div>
         </div>
       </div>
       ${stamps(c)}
@@ -137,7 +146,7 @@ function rToday() {
       <div class="slot">
         <div>
           <small>${slots[i]}</small>
-          <div>${id ? byId(id).e + ' ' + byId(id).t : 'Empty slot'}</div>
+          <div>${id ? byId(id).e + ' ' + escAttr(byId(id).t) : 'Empty slot'}</div>
         </div>
         <button class="chip on tight" onclick="pick(${i})">${id ? 'Swap' : '+ Add'}</button>
       </div>`).join('')}
@@ -158,7 +167,7 @@ function pick(i) {
   $('modal').classList.add('on');
 }
 
-function closeM() { $('modal').classList.remove('on'); }
+function closeM() { $('modal').classList.remove('on'); addingPantry = false; }
 
 /* ---- Deal ----------------------------------------------------------- */
 
@@ -188,14 +197,46 @@ function openPantry() {
     <h1>Your pantry</h1>
     <div class="sub">Tap what you have. Cards re-rank as you go.</div>
     <h2>In your kitchen</h2>
-    ${pantryAll.map(p => `<span class="chip ${pantry.includes(p) ? 'on' : ''}" onclick="tp('${p}')">${p}</span>`).join('')}
+    <div class="pantry-grid">
+      ${pantryAll.map(p => `<span class="chip ${pantry.includes(p) ? 'on' : ''}" data-p="${escAttr(p)}" onclick="tp(this.dataset.p)">${escAttr(p)}</span>`).join('')}
+    </div>
+    ${addingPantry ? `
+      <div class="add-form">
+        <input id="pantryInput" maxlength="30" placeholder="Ingredient name (e.g. cumin)"
+               onkeydown="if(event.key==='Enter'){event.preventDefault();addPantryItem()}">
+        <div class="add-form-actions">
+          <button class="btn o" onclick="togglePantryAdd(false)">Cancel</button>
+          <button class="btn" onclick="addPantryItem()">Add</button>
+        </div>
+      </div>` : `
+      <button class="add-ing-btn" onclick="togglePantryAdd(true)"><span>＋</span> Add an ingredient</button>`}
     <button class="btn" onclick="closeM()">Done</button>`;
   $('modal').classList.add('on');
+  if (addingPantry && $('pantryInput')) $('pantryInput').focus();
 }
 
 function tp(p) {
   pantry = pantry.includes(p) ? pantry.filter(x => x != p) : [...pantry, p];
   openPantry();
+  rDeal();
+}
+
+function togglePantryAdd(open) {
+  addingPantry = open;
+  openPantry();
+}
+
+function addPantryItem() {
+  const name = cleanName($('pantryInput').value);
+  if (!name) return toast('Type an ingredient first');
+  if (!pantryAll.includes(name)) pantryAll.push(name);
+  if (pantry.includes(name)) {
+    toast('Already in your pantry');
+  } else {
+    pantry.push(name);
+    toast('Added ' + name);
+  }
+  openPantry();   // form stays open so you can keep adding
   rDeal();
 }
 
@@ -210,24 +251,23 @@ function open_(id) {
         <div class="in">
           <div class="face">
             <div class="em">${c.e}</div>
-            <h3>${c.t}</h3>
-            <div class="meta">${c.min} min · by ${c.by}</div>
+            <h3>${escAttr(c.t)}</h3>
+            <div class="meta">${c.min} min</div>
             <div class="mt-8">${stamps(c)}</div>
             <div class="clip">▶ 20-sec how-to clip</div>
             <div class="flip-hint">Tap card to flip</div>
           </div>
           <div class="face back">
             <h3>Ingredients</h3>
-            <ul>${c.ing.map(i => `<li>${i}</li>`).join('')}</ul>
+            <ul>${c.ing.map(i => `<li>${escAttr(i)}</li>`).join('')}</ul>
             <h3 class="small mt-8">Steps</h3>
-            <ol>${c.steps.map(i => `<li>${i}</li>`).join('')}</ol>
+            <ol>${c.steps.map(i => `<li>${escAttr(i)}</li>`).join('')}</ol>
           </div>
         </div>
       </div>
     </div>
     <button class="btn" onclick="plan[day][plan[day].indexOf(null)>-1?plan[day].indexOf(null):0]=${c.id};closeM();rToday();toast('Added to today');tab('today')">Add to today</button>
-    <button class="btn o" onclick="toast('Remixed into your deck')">Remix this card</button>
-    <button class="btn o" onclick="toast('Share link copied')">Share with friends</button>`;
+    <button class="btn o" onclick="toast('Remixed into your deck')">Remix this card</button>`;
   $('modal').classList.add('on');
 }
 
@@ -235,7 +275,8 @@ function open_(id) {
 
 function rCreate() {
   const ntEl = $('nt');       const savedTitle = ntEl ? ntEl.value : '';
-  const iiEl = $('ingInput'); const savedIng   = iiEl ? iiEl.value : '';
+  const inEl = $('ingName');  const savedName  = inEl ? inEl.value : '';
+  const nutr = ['ingCal', 'ingPro', 'ingFib'].map(id => $(id) ? $(id).value : '');
 
   const s = draft.reduce(
     (a, i) => [a[0] + IG[i][0], a[1] + IG[i][1], a[2] + IG[i][2]],
@@ -246,14 +287,33 @@ function rCreate() {
     <h1>Write a card</h1>
     <div class="sub">Name it, add what goes in, add the steps. Nutrition adds up automatically.</div>
 
-    <input id="nt" placeholder="Card title (e.g. Sunday Egg Fried Rice)">
+    <input id="nt" maxlength="40" placeholder="Card title (e.g. Sunday Egg Fried Rice)">
+
+    <h2>Meal type</h2>
+    <div class="chip-row">
+      ${CATS.map(([k, label]) => `<span class="chip ${draftCat === k ? 'on' : ''}" onclick="setCat('${k}')">${label}</span>`).join('')}
+    </div>
 
     <h2>Ingredients</h2>
-    ${Object.keys(IG).map(i => `<span class="chip ${draft.includes(i) ? 'on' : ''}" onclick="td('${i}')">${i}</span>`).join('')}
-    <div class="ing-add">
-      <input id="ingInput" placeholder="Add your own" onkeydown="if(event.key==='Enter'){event.preventDefault();addIngredient()}">
-      <button onclick="addIngredient()" aria-label="Add ingredient">＋</button>
+    <div class="chip-row">
+      ${Object.keys(IG).map(i => `<span class="chip ${draft.includes(i) ? 'on' : ''}" data-i="${escAttr(i)}" onclick="td(this.dataset.i)">${escAttr(i)}</span>`).join('')}
     </div>
+    ${addingIng ? `
+      <div class="add-form">
+        <input id="ingName" maxlength="30" placeholder="Ingredient name (e.g. cumin)"
+               onkeydown="if(event.key==='Enter'){event.preventDefault();addIngredient()}">
+        <div class="sub" style="margin:0 0 6px">Nutrition per serving (optional)</div>
+        <div class="macro-row">
+          <input id="ingCal" type="number" min="0" inputmode="numeric" placeholder="Cal" onkeydown="if(event.key==='Enter'){event.preventDefault();addIngredient()}">
+          <input id="ingPro" type="number" min="0" inputmode="numeric" placeholder="Protein g" onkeydown="if(event.key==='Enter'){event.preventDefault();addIngredient()}">
+          <input id="ingFib" type="number" min="0" inputmode="numeric" placeholder="Fiber g" onkeydown="if(event.key==='Enter'){event.preventDefault();addIngredient()}">
+        </div>
+        <div class="add-form-actions">
+          <button class="btn o" onclick="toggleIngAdd(false)">Cancel</button>
+          <button class="btn" onclick="addIngredient()">Add</button>
+        </div>
+      </div>` : `
+      <button class="add-ing-btn" onclick="toggleIngAdd(true)"><span>＋</span> Add your own ingredient</button>`}
 
     <h2>Steps</h2>
     <div class="steps">
@@ -277,16 +337,33 @@ function rCreate() {
     <button class="btn" onclick="saveCard()">Save to my deck</button>`;
 
   if ($('nt')) $('nt').value = savedTitle;
-  if ($('ingInput')) $('ingInput').value = savedIng;
+  if ($('ingName')) {
+    $('ingName').value = savedName;
+    ['ingCal', 'ingPro', 'ingFib'].forEach((id, k) => { $(id).value = nutr[k]; });
+  }
+}
+
+function toggleIngAdd(open) {
+  addingIng = open;
+  rCreate();
+  if (open && $('ingName')) $('ingName').focus();
 }
 
 function addIngredient() {
-  const el = $('ingInput');
-  const name = el.value.trim().toLowerCase();
-  if (!name) return;
-  if (!IG[name]) IG[name] = [0, 0, 0];
+  const name = cleanName($('ingName').value);
+  if (!name) return toast('Type an ingredient first');
+  const n = ['ingCal', 'ingPro', 'ingFib'].map(id => Math.max(0, Math.round(Number($(id).value) || 0)));
+  // a brand-new ingredient gets the nutrition you typed (0 if left blank);
+  // an existing one keeps its numbers
+  if (!IG[name]) IG[name] = n;
   if (!draft.includes(name)) draft.push(name);
-  el.value = '';
+  ['ingName', 'ingCal', 'ingPro', 'ingFib'].forEach(id => { $(id).value = ''; });
+  rCreate();
+  $('ingName').focus();   // form stays open so you can keep adding
+}
+
+function setCat(k) {
+  draftCat = k;
   rCreate();
 }
 
@@ -302,12 +379,8 @@ function removeStep(i) {
 }
 
 function td(i) {
-  const ntEl = $('nt');       const savedTitle = ntEl ? ntEl.value : '';
-  const iiEl = $('ingInput'); const savedIng   = iiEl ? iiEl.value : '';
   draft = draft.includes(i) ? draft.filter(x => x != i) : [...draft, i];
   rCreate();
-  if ($('nt')) $('nt').value = savedTitle;
-  if ($('ingInput')) $('ingInput').value = savedIng;
 }
 
 function saveCard() {
@@ -325,10 +398,13 @@ function saveCard() {
     min: 15,
     ing: [...draft],
     steps: steps.length ? steps : ['Add your steps…'],
-    by: 'You'
+    cat: draftCat
   });
   draft = [];
   draftSteps = [''];
+  draftCat = 'dinner';
+  addingIng = false;
+  deckCat = 'all';
   toast('Card saved');
   rCreate();
   tab('deck');
@@ -336,15 +412,60 @@ function saveCard() {
 
 /* ---- Deck ----------------------------------------------------------- */
 
+/* The deck is a recipe box: divider tabs by meal type, a search slot,
+   and index cards stacked so you see each one's top edge. Tap to pull one out. */
+
+function boxCards() {
+  const q = deckQ.trim().toLowerCase();
+  return cards
+    .filter(c => deckCat === 'all' || c.cat === deckCat)
+    .filter(c => !q || c.t.toLowerCase().includes(q) || c.ing.some(i => i.includes(q)))
+    .sort((a, b) => a.t.localeCompare(b.t));
+}
+
+function rBox() {
+  const list = boxCards();
+  $('boxList').innerHTML = list.length
+    ? list.map(c => `
+        <div class="idx" role="button" tabindex="0" onclick="open_(${c.id})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();open_(${c.id})}">
+          <span class="idx-em">${c.e}</span>
+          <span class="idx-ttl">${escAttr(c.t)}</span>
+          <span class="idx-meta">${c.min} min · ${c.cal} cal</span>
+        </div>`).join('')
+    : `<div class="box-empty">
+         <div>${deckQ ? 'Nothing matches that search.' : 'No cards filed here yet.'}</div>
+         <button class="btn" onclick="tab('create')">Write a card</button>
+       </div>`;
+}
+
+function setDeckCat(k) {
+  deckCat = k;
+  rDeck();
+}
+
+function setDeckQ(v) {
+  deckQ = v;
+  rBox();   // re-render only the cards so the search field keeps focus
+}
+
 function rDeck() {
+  const count = k => k === 'all' ? cards.length : cards.filter(c => c.cat === k).length;
+  const dividers = [['all', 'All'], ...CATS];
   $('deck').innerHTML = `
-    <h1>My deck</h1>
-    <div class="sub">${cards.length} cards · tap to flip, remix, share</div>
-    <h2>Shared with you</h2>
-    <div class="friend"><div class="av">M</div>Maya added Greek Salad Wrap</div>
-    <div class="friend"><div class="av">R</div>Chef Rosa dropped 2 cards</div>
-    <h2>All cards</h2>
-    <div class="hand">${cards.map(c => mini(c)).join('')}</div>`;
+    <h1>Recipe box</h1>
+    <div class="sub">${cards.length} ${cards.length === 1 ? 'card' : 'cards'} filed · tap one to pull it out</div>
+
+    <input id="boxSearch" class="box-search" type="search" placeholder="Search by name or ingredient"
+           value="${escAttr(deckQ)}" oninput="setDeckQ(this.value)">
+
+    <div class="dividers">
+      ${dividers.map(([k, label]) => `
+        <button class="divider ${deckCat === k ? 'on' : ''}" onclick="setDeckCat('${k}')">
+          ${label}<small>${count(k)}</small>
+        </button>`).join('')}
+    </div>
+    <div class="box"><div id="boxList" class="box-list"></div></div>`;
+  rBox();
 }
 
 /* ---- Nav / tabs ----------------------------------------------------- */
