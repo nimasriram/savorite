@@ -1,5 +1,9 @@
 # savorite
 
+## Scope 
+
+Inspired by a Hackathon project that I worked on called Simmer. 
+
 ## The Problem
 
 1. Recipes are scattered - screenshots, saved reels, browser tabs, notes
@@ -46,6 +50,10 @@ Plan a day, one meal card at a time
 - "Remember me" so you stay logged in
 - Validation on every field with clear inline errors
 - A welcome screen once you're in
+
+### Simmer Figma Prototype
+
+<iframe style="border: 1px solid rgba(0, 0, 0, 0.1);" width="800" height="450" src="https://embed.figma.com/proto/PyR0gUUZ4pkvmkk2h06jv3/Simmer--Copy-?node-id=170-1394&p=f&scaling=scale-down&content-scaling=fixed&page-id=847%3A42244&starting-point-node-id=170%3A1394&show-proto-sidebar=1&embed-host=share" allowfullscreen></iframe>
 
 ## License
 
